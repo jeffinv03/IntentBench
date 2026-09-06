@@ -105,6 +105,13 @@ Three things in there are worth more than the headline number:
   name. Across every app shipped on macOS 26, 22% of intents have no description
   at all — these are reliably the ones that lose selection races.
 
+A fourth section appears when it applies: **unresolved localization keys**.
+Some apps ship catalogs whose title and description fields contain `.strings`
+lookup keys (`STOP_RECORDING_INTENT_DESCRIPTION`) rather than prose — 11% of
+intent strings on macOS 26 do. Those are treated as missing rather than handed
+to the judge, and named separately, because the fix is different: wire up your
+strings file, rather than write a description.
+
 ## Corpus format
 
 A corpus is a YAML file of things someone might say, paired with what your app
@@ -269,6 +276,9 @@ not two.
   integers in this file; ours were derived from every catalog shipped on macOS
   26 (see [DECISIONS.md](DECISIONS.md) ADR-0003). Unknown types degrade to
   strings rather than breaking.
+- **Unresolved localization keys are flagged, not resolved.** Reading `.lproj`
+  strings files would require a full bundle and a locale choice; it is a v0.2
+  candidate. See ADR-0009.
 
 ## Roadmap
 

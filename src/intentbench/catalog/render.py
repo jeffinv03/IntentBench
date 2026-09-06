@@ -105,11 +105,52 @@ def _join_sentences(parts: list[str]) -> str:
     return " ".join(out)
 
 
+#: An unresolved localization key: SCREAMING_SNAKE_CASE, no lowercase, no
+#: spaces, and at least one separator — e.g. "CREATE_RECORDING_INTENT_TITLE".
+#:
+#: The separator requirement is what keeps this from eating legitimate prose.
+#: Across every catalog shipped on macOS 26 there are 65 all-caps strings; 63
+#: are localization keys and every one of them contains an underscore. The two
+#: that do not are both the parameter title "URL", which is a real title and
+#: must survive.
+_LOCALIZATION_KEY_RE = re.compile(r"^[A-Z0-9]+([_.\-][A-Z0-9]+)+$")
+
+
+def looks_like_localization_key(text: str | None) -> bool:
+    """True if *text* is a localization key that was never resolved to prose.
+
+    Some apps ship catalogs whose title and description fields hold the
+    ``.strings`` lookup key rather than the string itself — the metadata
+    extractor did not resolve them, and the prose lives in the bundle's
+    ``.lproj`` directories instead. About 11% of intent strings across the
+    catalogs shipped on macOS 26 are like this.
+
+    To a judge these are worse than an empty description: ``SEARCH_RECORDINGS_
+    INTENT_DESCRIPTION`` looks like content while carrying almost none. We treat
+    them as absent so the fallback chain continues, and name them in the report,
+    because the fix ("wire up your strings") differs from the fix for a genuinely
+    missing description ("write one").
+    """
+    if not text:
+        return False
+    stripped = text.strip()
+    if len(stripped) < 2 or " " in stripped:
+        return False
+    return bool(_LOCALIZATION_KEY_RE.match(stripped))
+
+
+def _usable(text: str | None) -> str | None:
+    """The text, unless it is absent or an unresolved localization key."""
+    return None if looks_like_localization_key(text) else (text or None)
+
+
 def _describe_intent(intent: IntentDefinition) -> tuple[str, DescriptionSource]:
-    if intent.description:
-        return intent.description, DescriptionSource.DESCRIPTION
-    if intent.title:
-        return intent.title, DescriptionSource.TITLE
+    description = _usable(intent.description)
+    if description:
+        return description, DescriptionSource.DESCRIPTION
+    title = _usable(intent.title)
+    if title:
+        return title, DescriptionSource.TITLE
     return humanize_type_name(intent.type_name), DescriptionSource.TYPE_NAME
 
 
@@ -121,10 +162,9 @@ def _parameter_description(parameter: ParameterDefinition, catalog: Catalog) -> 
     tells it what kind of string belongs there.
     """
     parts: list[str] = []
-    if parameter.description:
-        parts.append(parameter.description)
-    elif parameter.title:
-        parts.append(parameter.title)
+    prose = _usable(parameter.description) or _usable(parameter.title)
+    if prose:
+        parts.append(prose)
 
     if parameter.type is ParameterType.ENTITY and parameter.entity_type:
         entity = catalog.entities.get(parameter.entity_type)
@@ -204,6 +244,7 @@ def render_catalog(
     tool_to_identifier: dict[str, str] = {}
     identifier_to_tool: dict[str, str] = {}
     description_sources: dict[str, DescriptionSource] = {}
+    unresolved: list[str] = []
     taken: set[str] = {NO_MATCH}
 
     for intent in selected:
@@ -214,6 +255,15 @@ def render_catalog(
         identifier_to_tool[intent.identifier] = tool_name
         description_sources[intent.identifier] = _describe_intent(intent)[1]
 
+        if any(
+            looks_like_localization_key(text) for text in (intent.title, intent.description)
+        ) or any(
+            looks_like_localization_key(text)
+            for parameter in intent.parameters
+            for text in (parameter.title, parameter.description)
+        ):
+            unresolved.append(intent.identifier)
+
     tools.append(ABSTAIN_TOOL)
 
     return RenderedCatalog(
@@ -221,6 +271,7 @@ def render_catalog(
         tool_name_to_identifier=tool_to_identifier,
         identifier_to_tool_name=identifier_to_tool,
         description_sources=description_sources,
+        unresolved_localization=sorted(unresolved),
     )
 
 

@@ -170,8 +170,9 @@ class ToolSchema(BaseModel):
 class DescriptionSource(str, Enum):
     """Where an intent's tool description came from.
 
-    Intents falling back to ``TYPE_NAME`` have no human-authored prose at all,
-    and are exactly the ones that tend to lose selection races. The report says so.
+    Intents falling back to ``TYPE_NAME`` have no usable human-authored prose at
+    all, and are exactly the ones that tend to lose selection races. The report
+    says so.
     """
 
     DESCRIPTION = "description"
@@ -186,6 +187,8 @@ class RenderedCatalog(BaseModel):
     tool_name_to_identifier: dict[str, str]
     identifier_to_tool_name: dict[str, str]
     description_sources: dict[str, DescriptionSource] = Field(default_factory=dict)
+    #: Identifiers whose title or description was an unresolved localization key.
+    unresolved_localization: list[str] = Field(default_factory=list)
 
     @property
     def weak_descriptions(self) -> list[str]:
@@ -348,6 +351,7 @@ class RunReport(BaseModel):
     usage: UsageSummary = Field(default_factory=UsageSummary)
     parse_warnings: list[ParseWarning] = Field(default_factory=list)
     weak_descriptions: list[str] = Field(default_factory=list)
+    unresolved_localization: list[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------

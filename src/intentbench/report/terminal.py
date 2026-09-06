@@ -15,6 +15,7 @@ from rich.table import Table
 from rich.text import Text
 
 from intentbench import __version__
+from intentbench.catalog.render import looks_like_localization_key
 from intentbench.models import (
     CaseOutcome,
     CaseResult,
@@ -120,12 +121,18 @@ def render_catalog_table(
             identifier.append(f"\n{' · '.join(flags)}", style="dim italic")
 
         description = intent.description or ""
-        style = "" if description else "dim italic"
+        if looks_like_localization_key(description):
+            cell = Text(f"{description}\n(unresolved localization key)", style="yellow")
+        elif description:
+            cell = Text(description)
+        else:
+            cell = Text("(no description)", style="dim italic")
+
         table.add_row(
             identifier,
             intent.title or Text("—", style="dim"),
             str(len(intent.parameters)),
-            Text(description or "(no description)", style=style),
+            cell,
         )
 
     console.print(table)
@@ -254,11 +261,25 @@ def render_run(console: Console, report: RunReport, *, verbose: bool = False) ->
     if report.weak_descriptions:
         console.print(f"  No description ({len(report.weak_descriptions)})", style="bold")
         console.print(
-            "      These intents have neither a description nor a title; the "
-            "judge saw only a name derived from the Swift type.",
+            "      These intents have no usable description or title; the judge "
+            "saw only a name derived from the Swift type.",
             style="dim",
         )
         console.print(f"      {', '.join(report.weak_descriptions)}", style="dim")
+        console.print()
+
+    if report.unresolved_localization:
+        console.print(
+            f"  Unresolved localization keys ({len(report.unresolved_localization)})",
+            style="bold yellow",
+        )
+        console.print(
+            "      These intents carry .strings lookup keys instead of prose "
+            "(e.g. STOP_RECORDING_INTENT_DESCRIPTION). They were treated as "
+            "missing.",
+            style="dim",
+        )
+        console.print(f"      {', '.join(report.unresolved_localization)}", style="dim")
         console.print()
 
     usage = report.usage

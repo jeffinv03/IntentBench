@@ -4,13 +4,18 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
+from intentbench.catalog import load_catalog
 from intentbench.catalog.render import (
     canonical_tools_json,
     humanize_type_name,
+    looks_like_localization_key,
     render_catalog,
     sanitize_tool_name,
 )
 from intentbench.models import NO_MATCH, Catalog, DescriptionSource, RenderedCatalog
+from tests.conftest import catalog_path
 
 
 def test_abstain_tool_is_always_appended(synthetic_rendered: RenderedCatalog) -> None:
@@ -50,7 +55,58 @@ def test_description_fallback_chain(synthetic: Catalog) -> None:
     assert sources["NoProseAtAllIntent"] is DescriptionSource.TYPE_NAME
     # Intents with no prose at all are named in the report — they are exactly
     # the ones that lose selection races.
-    assert rendered.weak_descriptions == ["NoProseAtAllIntent"]
+    assert rendered.weak_descriptions == ["LocalizationKeyIntent", "NoProseAtAllIntent"]
+
+
+def test_unresolved_localization_keys_are_treated_as_missing(synthetic: Catalog) -> None:
+    """`FOO_INTENT_DESCRIPTION` looks like content while carrying almost none.
+
+    Some shipping apps (VoiceMemos, Mail, Tips on macOS 26) put .strings lookup
+    keys in these fields instead of prose. Handing one to the judge is worse
+    than handing it nothing, so we fall through to the humanized type name.
+    """
+    rendered = render_catalog(synthetic)
+    tool = next(t for t in rendered.tools if t.name == "LocalizationKeyIntent")
+    assert tool.description == "Archive list"
+    assert rendered.description_sources["LocalizationKeyIntent"] is DescriptionSource.TYPE_NAME
+    # Reported separately from "no description at all" — the fix is different.
+    assert "LocalizationKeyIntent" in rendered.unresolved_localization
+    assert "NoProseAtAllIntent" not in rendered.unresolved_localization
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["STOP_RECORDING_INTENT_DESCRIPTION", "CREATE_FOLDER_INTENT_TITLE", "FOO.BAR_BAZ", "A_B"],
+)
+def test_localization_key_detection_positive(text: str) -> None:
+    assert looks_like_localization_key(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        None,
+        "",
+        "Adds an item to one of your lists.",
+        "Open List",
+        "UV Index",  # title case with a space
+        "OK",  # all caps, but no separator — real prose
+        "USA",
+        "URL",  # a real parameter title in Freeform's catalog
+        "Stop",
+    ],
+)
+def test_localization_key_detection_negative(text: str | None) -> None:
+    assert not looks_like_localization_key(text)
+
+
+def test_real_catalog_with_localization_keys() -> None:
+    """VoiceMemos ships 28 unresolved keys — the fixture exists for this."""
+    catalog = load_catalog(catalog_path("voicememos"))
+    rendered = render_catalog(catalog)
+    assert len(rendered.unresolved_localization) >= 10
+    for tool in rendered.tools:
+        assert not looks_like_localization_key(tool.description)
 
 
 def test_humanize_type_name() -> None:

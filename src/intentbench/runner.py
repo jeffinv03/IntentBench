@@ -153,6 +153,7 @@ def run_corpus(
         usage=usage,
         parse_warnings=catalog.parse_warnings,
         weak_descriptions=rendered.weak_descriptions,
+        unresolved_localization=rendered.unresolved_localization,
     )
 
 

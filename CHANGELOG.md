@@ -34,8 +34,10 @@ First release.
   scripted offline mock used by the entire test suite.
 - Abstention as a first-class expectation: `intent: null` in a corpus, and a
   synthetic `no_matching_intent` tool in every rendered catalog.
-- Reports name uncovered intents and intents that reach the judge with no
-  human-authored description at all.
+- Reports name uncovered intents, intents that reach the judge with no usable
+  description at all, and intents whose title or description is an unresolved
+  `.strings` localization key rather than prose (11% of intent strings across
+  the catalogs shipped on macOS 26).
 - Five real catalog fixtures from Apple system apps plus one hand-written
   synthetic fixture, each with a provenance sidecar.
 
