@@ -1,0 +1,12 @@
+{
+  "source_app": "(none — hand-written)",
+  "source_path": null,
+  "bundle_identifier": "com.example.listapp",
+  "captured_on": "2026-09-05",
+  "os": null,
+  "xcode": null,
+  "metadata_tools_version": "17E6107-synthetic",
+  "metadata_format_version": "3.0",
+  "redacted": false,
+  "why_this_fixture": "Hand-built to cover every field the parser handles, including shapes no shipping Apple app exercises: every primitive type identifier, arrays of entities and of strings, a measurement/duration, an IntentFile, an enum with a case that has no display title, unknown type identifiers and an unknown wrapper kind (both must degrade to UNKNOWN, not raise), a parameter with no valueType at all, a deprecated intent, a hidden intent, a schema-conformant intent, an intent with a title but no description, an intent with neither, an identifier that is not a legal tool name, and one structurally malformed node that must produce a ParseWarning without aborting the parse."
+}

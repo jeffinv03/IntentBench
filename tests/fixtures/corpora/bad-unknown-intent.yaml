@@ -1,0 +1,10 @@
+version: 1
+cases:
+  - phrase: "add milk"
+    expect:
+      intent: AddItemIntnet
+  - phrase: "make a list"
+    expect:
+      intent: CreateShoppingListIntent
+      parameters:
+        nmae: "camping"

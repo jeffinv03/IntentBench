@@ -1,0 +1,12 @@
+{
+  "source_app": "Freeform.app",
+  "source_path": "/System/Applications/Freeform.app/Contents/Resources/Metadata.appintents/extract.actionsdata",
+  "bundle_identifier": "com.apple.freeform",
+  "captured_on": "2026-09-05",
+  "os": "macOS 26.6.2 (25G83)",
+  "xcode": "Xcode 16.2 (16C5032a)",
+  "metadata_tools_version": "17A6231j",
+  "metadata_format_version": "3.0",
+  "redacted": false,
+  "why_this_fixture": "The only system catalog with deprecated intents (4) plus a hidden one, schema-conformant intents, and intents with no description at all."
+}

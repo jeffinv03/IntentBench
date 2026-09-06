@@ -1,0 +1,60 @@
+# The corpus format, annotated.
+#
+# A corpus is a list of things someone might say out loud, paired with what your
+# app should do about it. Copy this file, point it at your own intent
+# identifiers, and check it with:
+#
+#     intentbench validate --app ./MyApp.app --corpus ./phrases.yaml
+#
+# Validation is free and catches typo'd identifiers, parameters that don't exist
+# on the intent you named, and duplicate phrases — before any API calls happen.
+
+# Required. Lets the format change later without any file being silently
+# misread. There is exactly one version today.
+version: 1
+
+defaults:
+  # Applied to every case that doesn't set its own `locale`.
+  locale: en-US
+
+cases:
+  # The ordinary shape: a phrase, the intent it should select, and the
+  # parameters that phrase determines.
+  - phrase: "add milk to my shopping list"
+    expect:
+      intent: AddItemIntent
+      parameters:
+        item: "milk"
+        list: "shopping"
+
+  # Parameter expectations are PARTIAL. Only what you list is scored, so you are
+  # never forced to pin down something the phrase leaves genuinely open. Here
+  # "at 6" could be 6am or 6pm — so `dueDate` is simply not listed.
+  - phrase: "remind me to call mom at 6"
+    expect:
+      intent: CreateReminderIntent
+      parameters:
+        title: "call mom"
+
+  # `intent: null` means "nothing in this app should match". Abstention is a
+  # first-class expectation, not an afterthought: an app that grabs every
+  # utterance is broken in a way that pure accuracy numbers hide.
+  - phrase: "what's the weather in Tokyo"
+    expect:
+      intent: null
+    note: "Out-of-scope probe — catches over-eager matching."
+
+  # `tags` let you carve out a fast subset. Run `--filter smoke` in a
+  # pre-commit hook and the whole corpus in CI.
+  - phrase: "open my notes"
+    expect:
+      intent: OpenNotesIntent
+    tags: [smoke, navigation]
+
+  # A case can override the default locale.
+  - phrase: "ajoute du lait à ma liste"
+    locale: fr-FR
+    expect:
+      intent: AddItemIntent
+      parameters:
+        item: "lait"

@@ -1,0 +1,8 @@
+version: 1
+cases:
+  - phrase: "add milk"
+    expect:
+      intent: AddItemIntent
+  - phrase: "  Add Milk  "
+    expect:
+      intent: AddItemIntent

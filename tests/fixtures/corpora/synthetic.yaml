@@ -1,0 +1,30 @@
+version: 1
+
+defaults:
+  locale: en-US
+
+cases:
+  - phrase: "add milk to my shopping list"
+    expect:
+      intent: AddItemIntent
+      parameters:
+        item: "milk"
+        list: "shopping"
+    tags: [smoke]
+
+  - phrase: "make a new list called camping"
+    expect:
+      intent: CreateShoppingListIntent
+      parameters:
+        name: "camping"
+    tags: [smoke]
+
+  - phrase: "what's the weather in Tokyo"
+    expect:
+      intent: null
+    note: "Out-of-scope probe."
+    tags: [abstain]
+
+  - phrase: "sync everything"
+    expect:
+      intent: TitleOnlyIntent

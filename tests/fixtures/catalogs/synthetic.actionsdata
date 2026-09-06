@@ -1,0 +1,274 @@
+{
+  "actions": {
+    "AddItemIntent": {
+      "assistantDefinedSchemas": [],
+      "descriptionMetadata": {
+        "descriptionText": { "alternatives": [], "key": "Adds an item to one of your lists." },
+        "searchKeywords": []
+      },
+      "fullyQualifiedTypeName": "ListApp.AddItemIntent",
+      "identifier": "AddItemIntent",
+      "isDiscoverable": true,
+      "openAppWhenRun": false,
+      "parameters": [
+        {
+          "isOptional": false,
+          "name": "item",
+          "parameterDescription": { "alternatives": [], "key": "The thing to add." },
+          "title": { "alternatives": [], "key": "Item" },
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 0 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "list",
+          "parameterDescription": { "alternatives": [], "key": "Which list to add it to." },
+          "title": { "alternatives": [], "key": "List" },
+          "typeSpecificMetadata": [],
+          "valueType": { "entity": { "wrapper": { "typeName": "ShoppingListEntity" } } }
+        },
+        {
+          "isOptional": true,
+          "name": "quantity",
+          "title": { "alternatives": [], "key": "Quantity" },
+          "typeSpecificMetadata": [
+            "LNValueTypeSpecificMetadataKeyDefaultValue",
+            { "int": { "wrapper": 1 } }
+          ],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 2 } } }
+        }
+      ],
+      "title": { "alternatives": [], "key": "Add Item" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    },
+
+    "EveryTypeIntent": {
+      "assistantDefinedSchemas": [],
+      "descriptionMetadata": {
+        "descriptionText": {
+          "alternatives": [],
+          "key": "Exercises every parameter type the parser knows about."
+        }
+      },
+      "fullyQualifiedTypeName": "ListApp.Nested.EveryTypeIntent",
+      "identifier": "EveryTypeIntent",
+      "parameters": [
+        {
+          "isOptional": false,
+          "name": "aString",
+          "typeSpecificMetadata": [
+            "LNValueTypeSpecificMetadataKeyDefaultValue",
+            { "string": { "wrapper": "hello" } }
+          ],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 0 } } }
+        },
+        {
+          "isOptional": false,
+          "name": "aBool",
+          "typeSpecificMetadata": [
+            "LNValueTypeSpecificMetadataKeyDefaultValue",
+            { "int": { "wrapper": 1 } }
+          ],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 1 } } }
+        },
+        {
+          "isOptional": false,
+          "name": "anInteger",
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 2 } } }
+        },
+        {
+          "isOptional": false,
+          "name": "aNumber",
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 7 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "aDate",
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 8 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "aURL",
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 11 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "richText",
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 12 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "aDuration",
+          "typeSpecificMetadata": [
+            "LNValueTypeMetadataKeyMeasurementDefaultUnitSymbol",
+            { "string": { "wrapper": "min" } }
+          ],
+          "valueType": { "measurement": { "wrapper": { "unitType": 7 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "aFile",
+          "typeSpecificMetadata": [],
+          "valueType": { "intents": { "wrapper": { "typeIdentifier": 12 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "anEnum",
+          "parameterDescription": { "alternatives": [], "key": "How to sort the results." },
+          "typeSpecificMetadata": [],
+          "valueType": { "linkEnumeration": { "wrapper": { "identifier": "SortOrder" } } }
+        },
+        {
+          "isOptional": true,
+          "name": "manyEntities",
+          "typeSpecificMetadata": [],
+          "valueType": {
+            "array": {
+              "wrapper": {
+                "capabilities": 3,
+                "memberValueType": { "entity": { "wrapper": { "typeName": "ShoppingListEntity" } } }
+              }
+            }
+          }
+        },
+        {
+          "isOptional": true,
+          "name": "manyStrings",
+          "typeSpecificMetadata": [],
+          "valueType": {
+            "array": {
+              "wrapper": { "memberValueType": { "primitive": { "wrapper": { "typeIdentifier": 0 } } } }
+            }
+          }
+        },
+        {
+          "isOptional": true,
+          "name": "somethingNew",
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 9999 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "somethingNewer",
+          "typeSpecificMetadata": [],
+          "valueType": { "thisWrapperDoesNotExistYet": { "wrapper": { "typeIdentifier": 3 } } }
+        },
+        {
+          "isOptional": true,
+          "name": "noValueTypeAtAll",
+          "typeSpecificMetadata": []
+        }
+      ],
+      "title": { "alternatives": [], "key": "Every Type" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    },
+
+    "CreateShoppingListIntent": {
+      "assistantDefinedSchemas": [
+        { "domain": "lists", "name": "CreateListIntent", "version": "1.0.0" }
+      ],
+      "descriptionMetadata": {
+        "descriptionText": { "alternatives": [], "key": "Creates a new shopping list." }
+      },
+      "fullyQualifiedTypeName": "ListApp.CreateShoppingListIntent",
+      "identifier": "CreateShoppingListIntent",
+      "openAppWhenRun": true,
+      "parameters": [
+        {
+          "isOptional": false,
+          "name": "name",
+          "title": { "alternatives": [], "key": "Name" },
+          "typeSpecificMetadata": [],
+          "valueType": { "primitive": { "wrapper": { "typeIdentifier": 0 } } }
+        }
+      ],
+      "title": { "alternatives": [], "key": "Create List" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    },
+
+    "TitleOnlyIntent": {
+      "fullyQualifiedTypeName": "ListApp.TitleOnlyIntent",
+      "identifier": "TitleOnlyIntent",
+      "parameters": [],
+      "title": { "alternatives": [], "key": "Sync Everything" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    },
+
+    "NoProseAtAllIntent": {
+      "fullyQualifiedTypeName": "ListApp.ArchiveOldListsAppIntent",
+      "identifier": "NoProseAtAllIntent",
+      "parameters": [],
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    },
+
+    "HiddenInternalIntent": {
+      "descriptionMetadata": {
+        "descriptionText": { "alternatives": [], "key": "Internal debugging action." }
+      },
+      "fullyQualifiedTypeName": "ListApp.HiddenInternalIntent",
+      "identifier": "HiddenInternalIntent",
+      "parameters": [],
+      "title": { "alternatives": [], "key": "Dump Diagnostics" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": false }
+    },
+
+    "OldRenameListIntent": {
+      "deprecationMetadata": {
+        "messageText": { "alternatives": [], "key": "Deprecated" },
+        "replacedByIntentIdentifier": "RenameListIntent"
+      },
+      "descriptionMetadata": {
+        "descriptionText": { "alternatives": [], "key": "Renames a list. Replaced by Rename List." }
+      },
+      "fullyQualifiedTypeName": "ListApp.OldRenameListIntent",
+      "identifier": "OldRenameListIntent",
+      "parameters": [],
+      "title": { "alternatives": [], "key": "Rename List (old)" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    },
+
+    "MalformedIntent": "this node is a string, not an object",
+
+    "Weird Identifier / With Punctuation!": {
+      "descriptionMetadata": {
+        "descriptionText": { "alternatives": [], "key": "Its identifier is not a legal tool name." }
+      },
+      "fullyQualifiedTypeName": "ListApp.WeirdIdentifierIntent",
+      "identifier": "Weird Identifier / With Punctuation!",
+      "parameters": [],
+      "title": { "alternatives": [], "key": "Weird Identifier" },
+      "visibilityMetadata": { "assistantOnly": false, "isDiscoverable": true }
+    }
+  },
+
+  "entities": {
+    "ShoppingListEntity": {
+      "displayTypeName": { "alternatives": [], "key": "Shopping List" },
+      "fullyQualifiedTypeName": "ListApp.ShoppingListEntity",
+      "typeName": "ShoppingListEntity"
+    }
+  },
+
+  "enums": [
+    {
+      "cases": [
+        { "displayRepresentation": { "title": { "alternatives": [], "key": "Alphabetical" } }, "identifier": "alphabetical" },
+        { "displayRepresentation": { "title": { "alternatives": [], "key": "Newest First" } }, "identifier": "newestFirst" },
+        { "identifier": "manual" }
+      ],
+      "displayTypeName": { "alternatives": [], "key": "Sort Order" },
+      "fullyQualifiedTypeName": "ListApp.SortOrder",
+      "identifier": "SortOrder",
+      "isSystem": false
+    }
+  ],
+
+  "generator": { "name": "xcode-tools", "version": "17E6107-synthetic" },
+  "queries": {},
+  "version": 1
+}

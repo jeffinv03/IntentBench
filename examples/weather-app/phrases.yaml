@@ -1,0 +1,106 @@
+# A worked example against a real catalog: Apple's Weather.app on macOS.
+#
+# Weather ships six intents. Five of them start with "Open" and three of them
+# take a location, which makes it a genuinely interesting selection problem —
+# and a good illustration of what this tool is for. Run it with:
+#
+#     intentbench run --app ./weather.actionsdata --corpus ./phrases.yaml
+#
+# You can point --app at a .app bundle, a Metadata.appintents directory, or (as
+# here) the extract.actionsdata file on its own.
+
+version: 1
+
+defaults:
+  locale: en-US
+
+cases:
+  # --- The easy ones. If these fail, something is badly wrong. -------------
+
+  - phrase: "show me the sunrise and sunset in Tokyo"
+    expect:
+      intent: OpenSunriseSunsetIntent
+      parameters:
+        location: "Tokyo"
+    tags: [smoke]
+
+  - phrase: "what's the air quality in Los Angeles"
+    expect:
+      intent: OpenWeatherAirQualityIntent
+      parameters:
+        location: "Los Angeles"
+    tags: [smoke]
+
+  - phrase: "show me the moon phase for Reykjavik"
+    expect:
+      intent: OpenMoonIntent
+      parameters:
+        location: "Reykjavik"
+    tags: [smoke]
+
+  # --- Enum filling. The intent is easy; the enum case is the real test. ---
+
+  - phrase: "how humid is it in Singapore"
+    expect:
+      intent: OpenWeatherSpecificConditionIntent
+      parameters:
+        location: "Singapore"
+        specificCondition: "humidity"
+    tags: [enums]
+
+  - phrase: "what's the UV index in Sydney"
+    expect:
+      intent: OpenWeatherSpecificConditionIntent
+      parameters:
+        location: "Sydney"
+        specificCondition: "uvi"
+    tags: [enums]
+
+  - phrase: "how windy is it in Chicago right now"
+    expect:
+      intent: OpenWeatherSpecificConditionIntent
+      # Only `specificCondition` is pinned. The phrase says "right now", which
+      # could reasonably fill `date` or leave it empty — so we don't score it.
+      # Partial expectations exist precisely for this.
+      parameters:
+        specificCondition: "wind"
+    tags: [enums]
+
+  # --- Settings screens, which take no parameters at all. -----------------
+
+  - phrase: "switch weather to celsius"
+    expect:
+      intent: OpenUnitsConfigurationIntent
+    note: >-
+      Neither intent mentions Celsius by name. This passes only if the Units
+      description carries enough signal to beat the Notifications one.
+    tags: [settings]
+
+  - phrase: "turn on severe weather alerts"
+    expect:
+      intent: OpenNotificationsConfigurationIntent
+    tags: [settings]
+
+  # --- Abstention probes. Over-matching is a real failure mode, and most ---
+  # --- eval harnesses ignore it entirely. ---------------------------------
+
+  - phrase: "add milk to my shopping list"
+    expect:
+      intent: null
+    note: "Weather has nothing to do with lists. Selecting anything here is a bug."
+    tags: [abstain]
+
+  - phrase: "call my mom"
+    expect:
+      intent: null
+    tags: [abstain]
+
+  - phrase: "what's the weather like in Paris"
+    expect:
+      intent: null
+    note: >-
+      The interesting one. Weather ships no general "show the forecast" intent —
+      only the specific-detail screens. A router that picks
+      OpenWeatherSpecificConditionIntent here is guessing which detail the user
+      meant, which is exactly the over-eager matching this probe catches.
+    tags: [abstain, tricky]
