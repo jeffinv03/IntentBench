@@ -1,0 +1,26 @@
+# Scripted judge responses for the synthetic catalog.
+#
+# One of these is deliberately wrong ("sync everything"), so the failure
+# rendering, the threshold check, and the diff all have something to work with.
+
+responses:
+  "add milk to my shopping list":
+    intent: AddItemIntent
+    # Capitalized on purpose: string comparison casefolds, so this still matches.
+    parameters: { item: "Milk", list: "shopping" }
+
+  "make a new list called camping":
+    intent: CreateShoppingListIntent
+    parameters: { name: "camping" }
+
+  "what's the weather in Tokyo":
+    intent: null
+
+  # Deliberately wrong: TitleOnlyIntent has a title but no description, so it is
+  # a plausible thing for a router to miss.
+  "sync everything":
+    intent: AddItemIntent
+    parameters: { item: "everything" }
+
+default:
+  intent: null

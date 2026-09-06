@@ -1,0 +1,6 @@
+version: 1
+cases:
+  - phrase: "hello"
+    expect:
+      intent: AddItemIntent
+    expects: { typo: true }

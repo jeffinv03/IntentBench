@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "intentbench"
+version = "0.1.0"
+description = "Evaluate Apple App Intents catalogs for selection quality — a proxy signal for how a router picks between your intents."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "Jeffin Varghese" }]
+keywords = ["app-intents", "siri", "shortcuts", "ios", "macos", "eval", "llm"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Testing",
+]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.7",
+  "pydantic>=2.7",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+openai = ["openai>=1.40"]
+all = ["anthropic>=0.40", "openai>=1.40"]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "types-PyYAML",
+  "anthropic>=0.40",
+  "openai>=1.40",
+]
+
+[project.scripts]
+intentbench = "intentbench.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jeffinv/intentbench"
+Issues = "https://github.com/jeffinv/intentbench/issues"
+Changelog = "https://github.com/jeffinv/intentbench/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/intentbench"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+  "B008",   # typer uses function calls in argument defaults by design
+  "UP042",  # `str, Enum` (not StrEnum) is what the spec models specify, and it
+            # keeps JSON serialization of these values obvious at a glance
+  "RUF001", # `·` and `×` in terminal output are intentional typography
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["anthropic.*", "openai.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "live: hits a real model API; requires an API key. Deselected by default.",
+]
+addopts = "-m 'not live'"

@@ -1,0 +1,12 @@
+{
+  "source_app": "Weather.app",
+  "source_path": "/System/Applications/Weather.app/Contents/Resources/Metadata.appintents/extract.actionsdata",
+  "bundle_identifier": "com.apple.weather",
+  "captured_on": "2026-09-05",
+  "os": "macOS 26.6.2 (25G83)",
+  "xcode": "Xcode 16.2 (16C5032a)",
+  "metadata_tools_version": "17E6107",
+  "metadata_format_version": "3.0",
+  "redacted": false,
+  "why_this_fixture": "Six intents and four enums. Exercises enum rendering end to end."
+}

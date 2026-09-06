@@ -1,0 +1,12 @@
+{
+  "source_app": "Podcasts.app",
+  "source_path": "/System/Applications/Podcasts.app/Contents/Resources/Metadata.appintents/extract.actionsdata",
+  "bundle_identifier": "com.apple.podcasts",
+  "captured_on": "2026-09-05",
+  "os": "macOS 26.6.2 (25G83)",
+  "xcode": "Xcode 16.2 (16C5032a)",
+  "metadata_tools_version": "17E6107",
+  "metadata_format_version": "3.0",
+  "redacted": false,
+  "why_this_fixture": "A valid catalog that declares zero intents. Edge case: must parse cleanly, not crash."
+}

@@ -1,0 +1,55 @@
+# Scripted judge responses, so the worked example runs offline with no API key:
+#
+#     intentbench run --app ./weather.actionsdata --corpus ./phrases.yaml \
+#         --judge mock --mock-script ./mock-responses.yaml
+#
+# These are illustrative, not a recording of a real run. Three are deliberately
+# wrong so the failure output has something to show.
+
+responses:
+  "show me the sunrise and sunset in Tokyo":
+    intent: OpenSunriseSunsetIntent
+    parameters: { location: Tokyo }
+
+  "what's the air quality in Los Angeles":
+    intent: OpenWeatherAirQualityIntent
+    parameters: { location: Los Angeles }
+
+  "show me the moon phase for Reykjavik":
+    intent: OpenMoonIntent
+    parameters: { location: Reykjavik }
+
+  "how humid is it in Singapore":
+    intent: OpenWeatherSpecificConditionIntent
+    parameters: { location: Singapore, specificCondition: humidity }
+
+  "what's the UV index in Sydney":
+    intent: OpenWeatherSpecificConditionIntent
+    parameters: { location: Sydney, specificCondition: uvi }
+
+  # Right intent, wrong enum case — scores as param_mismatch, which is a
+  # different and less severe failure than picking the wrong intent.
+  "how windy is it in Chicago right now":
+    intent: OpenWeatherSpecificConditionIntent
+    parameters: { location: Chicago, specificCondition: conditions }
+
+  "switch weather to celsius":
+    intent: OpenUnitsConfigurationIntent
+
+  # Wrong intent: the two settings screens read similarly.
+  "turn on severe weather alerts":
+    intent: OpenUnitsConfigurationIntent
+
+  "add milk to my shopping list":
+    intent: null
+
+  "call my mom":
+    intent: null
+
+  # Over-matching: expected abstention, picked something. A false positive.
+  "what's the weather like in Paris":
+    intent: OpenWeatherSpecificConditionIntent
+    parameters: { location: Paris, specificCondition: conditions }
+
+default:
+  intent: null
