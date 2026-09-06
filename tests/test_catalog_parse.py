@@ -174,7 +174,7 @@ def test_synthetic_schema_conformance(synthetic: Catalog) -> None:
 
 def test_one_bad_node_warns_and_the_rest_survive(synthetic: Catalog) -> None:
     """Never fail the whole parse on one bad node."""
-    assert len(synthetic.intents) == 8
+    assert len(synthetic.intents) == 9
     assert len(synthetic.parse_warnings) == 1
     warning = synthetic.parse_warnings[0]
     assert warning.node == "MalformedIntent"

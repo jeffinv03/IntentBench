@@ -82,6 +82,22 @@ def render_markdown(report: RunReport) -> str:
         lines.append(", ".join(f"`{name}`" for name in uncovered))
         lines.append("")
 
+    if report.weak_descriptions:
+        lines.append(f"### No usable description ({len(report.weak_descriptions)})")
+        lines.append("")
+        lines.append(", ".join(f"`{name}`" for name in report.weak_descriptions))
+        lines.append("")
+
+    if report.unresolved_localization:
+        lines.append(f"### Unresolved localization keys ({len(report.unresolved_localization)})")
+        lines.append("")
+        lines.append(
+            "These carry `.strings` lookup keys instead of prose, and were treated as missing."
+        )
+        lines.append("")
+        lines.append(", ".join(f"`{n}`" for n in report.unresolved_localization))
+        lines.append("")
+
     return "\n".join(lines)
 
 

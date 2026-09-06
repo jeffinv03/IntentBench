@@ -96,8 +96,9 @@ An abridged real intent node (Reminders.app, complete except for indentation):
 Three encoding conventions matter:
 
 1. **Localized strings** are `{"alternatives": [], "key": "..."}`. Despite the
-   name, `key` holds the literal display string, not a lookup key — every value
-   observed across 22 catalogs was human-readable English prose.
+   name, `key` usually holds the literal display string rather than a lookup
+   key — but not always, and the exception matters enough to have its own entry
+   (ADR-0009).
 2. **`valueType` is a single-key tagged union.** The key names the wrapper kind
    (`primitive`, `entity`, `linkEnumeration`, `array`, `measurement`, `intents`,
    `searchCriteria`) and the payload sits under `wrapper`.
@@ -313,3 +314,66 @@ time zones, locale-dependent parsing, ambiguity between `6` meaning 6am and 6pm
 The limitation is not silent. A comparison against a parameter the catalog types
 as `DATE` or `DURATION` is flagged, and the terminal report says the comparison
 was literal whenever such a case fails. Revisit if real corpora hit it often.
+
+
+---
+
+## ADR-0009 — Unresolved localization keys are treated as missing prose
+
+**Status:** accepted
+
+### The finding
+
+ADR-0002 originally claimed that the `key` field of a localized string always
+holds literal display text. That is wrong, and it was caught by running
+`intentbench catalog` against VoiceMemos.app:
+
+```
+Identifier               Title                        Description
+RecordVoiceMemoIntent    CREATE_RECORDING_INTENT_...  CREATE_RECORDING_INTENT_DESCRIPTION
+StopRecording            STOP_RECORDING_INTENT_TITLE  STOP_RECORDING_INTENT_DESCRIPTION
+```
+
+These are `.strings` lookup keys that the metadata extractor did not resolve.
+The actual prose lives in the bundle's `.lproj` directories, which the actions
+file does not reference.
+
+Across the 22 catalogs surveyed, **38 of 332 intent strings (11%) are
+unresolved localization keys**, in three apps: VoiceMemos (28), Mail (8), and
+Tips (2).
+
+### Why this matters more than it first appears
+
+An intent whose description is `SEARCH_RECORDINGS_INTENT_DESCRIPTION` is *worse
+off* than one with no description at all. It looks like content — it occupies
+the description slot, so the title fallback never fires — while carrying almost
+no signal a router can use. Handing it to the judge verbatim would quietly
+degrade selection and, worse, would make the tool blame the model for a metadata
+problem.
+
+### What we do
+
+Strings matching `^[A-Z0-9]+([_.-][A-Z0-9]+)+$` — all caps, no spaces, at least
+one separator — are treated as absent, so the normal fallback chain continues to
+the title and then to the humanized Swift type name. `StopRecording` therefore
+reaches the judge as "Stop recording" rather than
+`STOP_RECORDING_INTENT_DESCRIPTION`, which is strictly more useful.
+
+They are also reported in their own section, separate from "no description at
+all", because the fix is different: wire up your strings file, versus write a
+description.
+
+**The separator requirement is what makes the heuristic safe.** Of the 65
+all-caps strings across every surveyed catalog, 63 are localization keys and
+every one contains an underscore. The two that do not are both the parameter
+title `URL` — real prose that must survive. Requiring a separator keeps it.
+
+### Not resolving them
+
+Reading the `.lproj` strings files was considered and rejected for v0.1. It
+would only work when the input is a full `.app` bundle (not the bare data file,
+which is what people attach to bug reports), it means picking a locale, and
+`.strings` files come in both binary-plist and text flavors. Flagging the
+problem is most of the value; resolving it is a v0.2 candidate.
+
+VoiceMemos is a committed fixture specifically so this path stays tested.
