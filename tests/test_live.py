@@ -4,25 +4,41 @@ Deselected by default (``addopts = -m 'not live'``). Run it deliberately:
 
     pytest -m live
 
-It costs a few cents and needs ``ANTHROPIC_API_KEY``. Everything else in this
-suite runs offline.
+It costs a few cents and needs ``ANTHROPIC_API_KEY``, exported or in ``.env``.
+Everything else in this suite runs offline.
 """
 
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
 
 from intentbench.catalog import load_catalog, render_catalog
+from intentbench.envfile import read_env_file
 from intentbench.judge.anthropic import DEFAULT_MODEL, AnthropicJudge
 from intentbench.models import NO_MATCH
 from tests.conftest import catalog_path
 
+#: The repo's .env, read without touching os.environ: this module is imported
+#: even when the live tests are deselected.
+LOCAL_ENV = read_env_file(Path(__file__).resolve().parents[1] / ".env")
+
 pytestmark = [
     pytest.mark.live,
-    pytest.mark.skipif(not os.environ.get("ANTHROPIC_API_KEY"), reason="needs ANTHROPIC_API_KEY"),
+    pytest.mark.skipif(
+        not (os.environ.get("ANTHROPIC_API_KEY") or LOCAL_ENV.get("ANTHROPIC_API_KEY")),
+        reason="needs ANTHROPIC_API_KEY",
+    ),
 ]
+
+
+@pytest.fixture(autouse=True)
+def local_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name, value in LOCAL_ENV.items():
+        if not os.environ.get(name):
+            monkeypatch.setenv(name, value)
 
 
 @pytest.fixture(scope="module")

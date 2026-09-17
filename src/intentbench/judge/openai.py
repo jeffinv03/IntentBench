@@ -66,7 +66,8 @@ class OpenAIJudge:
         key = api_key or os.environ.get("OPENAI_API_KEY")
         if not key:
             raise JudgeError(
-                "No OpenAI API key found.\n"
+                "No OpenAI API key found. Either:\n"
+                "  cp .env.example .env   # then paste the key into .env\n"
                 "  export OPENAI_API_KEY=sk-...\n"
                 "Or run with `--judge mock` to work offline."
             )

@@ -410,3 +410,26 @@ Usage is summed over individual attempts before repeats are collapsed into one
 result. Cached attempts count as cached calls and contribute no tokens: their
 stored token counts describe a call paid for in an earlier run, not this one.
 
+## ADR-0011 — Temperature travels in `extra_body`
+
+**Status:** accepted
+
+`anthropic` 1.x removed `temperature`, `top_p`, and `top_k` from
+`messages.create()`; passing one is a `TypeError`. The first live run caught it —
+every offline test uses a fake client whose `create(**kwargs)` accepts anything.
+
+The API still honours temperature on the default model (`claude-sonnet-4-6`),
+and the judge depends on it: a judge that wanders between runs makes the diff
+meaningless (see `TEMPERATURE` in `judge/base.py`). So it is sent as
+`extra_body={"temperature": 0.0}`, which works on both 0.x and 1.x SDKs.
+
+Opus 4.7 and later reject sampling parameters outright, and Sonnet 5 rejects
+non-default values. As with forced tool choice (ADR-0006), the judge drops the
+setting after the first 400 that names it and remembers that for the run. On
+those models, run-to-run stability is up to the model — which `--repeat` now
+measures honestly (ADR-0010).
+
+A test now checks every argument the judge sends against the installed SDK's
+real `Messages.create` signature, so the fake client can no longer hide this
+kind of drift.
+
