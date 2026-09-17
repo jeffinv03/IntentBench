@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `--repeat N` now makes N fresh judge calls per case and bypasses the response
+  cache. Previously every repeat shared one cache key, so a warm cache replayed
+  the same answer N times and a case could never be flagged unstable; with a
+  cold cache, how many repeats hit the API depended on thread timing. The cost
+  confirmation now counts cases × N regardless of the cache.
+- Usage is counted per attempt before repeats are collapsed, so the API-call and
+  cached-call totals are exact.
+- Cached responses no longer contribute tokens to the run's usage, so a fully
+  cached run reports no cost instead of the cost of the original run.
+
 ## [0.1.0] — 2026-09-05
 
 First release.

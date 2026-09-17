@@ -66,12 +66,18 @@ def run_corpus(
     corpus_path: str | None = None,
     on_case_done: Callable[[CaseResult], None] | None = None,
 ) -> RunReport:
-    """Run every case (``repeat`` times each) and return a scored report."""
+    """Run every case (``repeat`` times each) and return a scored report.
+
+    With ``repeat > 1`` the cache is bypassed entirely: every attempt is a fresh
+    judge call. Repeats exist to measure run-to-run variance, and a cached
+    answer replayed N times has none by construction.
+    """
     by_identifier = {intent.identifier: intent for intent in intents}
     tools_json = canonical_tools_json(rendered.tools)
 
     # (case index, repetition index) — flattened so one thread pool covers both.
     units = [(index, attempt) for index in range(len(cases)) for attempt in range(repeat)]
+    store = cache if repeat == 1 else None
 
     def execute(unit: tuple[int, int]) -> tuple[int, CaseResult]:
         index, _attempt = unit
@@ -86,11 +92,11 @@ def run_corpus(
             locale=locale,
         )
 
-        judged: JudgeResult | None = cache.get(key) if cache else None
+        judged: JudgeResult | None = store.get(key) if store else None
         if judged is None:
             judged = judge.select(case.phrase, rendered.tools, locale)
-            if cache is not None:
-                cache.put(key, judged)
+            if store is not None:
+                store.put(key, judged)
 
         identifier = _resolve_tool_name(rendered, judged.selected_intent)
         result = score_case(
@@ -122,15 +128,19 @@ def run_corpus(
                 if on_case_done:
                     on_case_done(result)
 
-    results = [resolve_repeats(collected[index]) for index in range(len(cases))]
-
+    # Usage is counted per attempt, before repeats are collapsed. Cached
+    # attempts cost nothing this run, so their recorded tokens are left out.
+    attempts = [attempt for index in range(len(cases)) for attempt in collected[index]]
+    billed = [attempt for attempt in attempts if not attempt.from_cache]
     usage = UsageSummary(
-        api_calls=sum(1 for r in results for _ in range(r.repeats) if not r.from_cache),
-        cached_calls=sum(r.repeats for r in results if r.from_cache),
-        input_tokens=sum(r.input_tokens for r in results),
-        output_tokens=sum(r.output_tokens for r in results),
+        api_calls=len(billed),
+        cached_calls=len(attempts) - len(billed),
+        input_tokens=sum(r.input_tokens for r in billed),
+        output_tokens=sum(r.output_tokens for r in billed),
     )
     usage.estimated_cost_usd = cost_usd(judge.model_id, usage.input_tokens, usage.output_tokens)
+
+    results = [resolve_repeats(collected[index]) for index in range(len(cases))]
 
     metadata = RunMetadata(
         intentbench_version=__version__,
@@ -166,8 +176,12 @@ def count_uncached(
     cache: ResponseCache | None,
     repeat: int,
 ) -> int:
-    """How many billable calls a run would make. Drives the cost confirmation."""
-    if cache is None or not cache.enabled:
+    """How many billable calls a run would make. Drives the cost confirmation.
+
+    Repeated runs never read the cache (see :func:`run_corpus`), so every
+    attempt counts.
+    """
+    if cache is None or not cache.enabled or repeat > 1:
         return len(cases) * repeat
 
     tools_json = canonical_tools_json(rendered.tools)
@@ -181,5 +195,5 @@ def count_uncached(
             locale=corpus.locale_for(case),
         )
         if cache.get(key) is None:
-            uncached += repeat
+            uncached += 1
     return uncached
