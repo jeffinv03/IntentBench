@@ -377,3 +377,36 @@ which is what people attach to bug reports), it means picking a locale, and
 problem is most of the value; resolving it is a v0.2 candidate.
 
 VoiceMemos is a committed fixture specifically so this path stays tested.
+
+## ADR-0010 — `--repeat` bypasses the response cache
+
+**Status:** accepted
+
+### The bug
+
+In 0.1.0 every repeat of a case built the same cache key. With a warm cache all
+N repeats replayed one stored answer, so `--repeat` reported every case as
+stable without asking the model again — the one thing the flag exists to
+measure. With a cold cache the repeats ran concurrently, and whether each one
+hit the API or the freshly written entry depended on thread timing. The mock
+judge runs uncached, so the CLI test for `--repeat` never exercised the path.
+
+### What we do
+
+With `repeat > 1` the runner neither reads nor writes the cache. Every attempt is
+a fresh call, and the cost confirmation counts cases × N.
+
+Alternatives considered:
+
+- **Put the attempt index in the cache key.** Repeat 2 of a warm run would then
+  replay repeat 2 of an old run, so instability would be measured once and
+  frozen forever. Rejected for the same reason as the original behavior.
+- **Write repeats to the single-run key.** Which attempt wins is arbitrary, and
+  a later single run would silently inherit it. Not worth the ambiguity.
+
+### Usage accounting
+
+Usage is summed over individual attempts before repeats are collapsed into one
+result. Cached attempts count as cached calls and contribute no tokens: their
+stored token counts describe a call paid for in an earlier run, not this one.
+

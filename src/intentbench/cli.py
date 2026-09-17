@@ -350,7 +350,13 @@ def run(
         typer.Option("--filter", help="Only run cases carrying these tags (comma-separated)."),
     ] = None,
     repeat: Annotated[
-        int, typer.Option("--repeat", min=1, help="Run each case N times and flag unstable ones.")
+        int,
+        typer.Option(
+            "--repeat",
+            min=1,
+            help="Run each case N times and flag unstable ones. "
+            "Every repeat is a fresh, uncached call.",
+        ),
     ] = 1,
     concurrency: Annotated[
         int, typer.Option("--concurrency", min=1, help="Concurrent requests.")

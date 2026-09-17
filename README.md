@@ -229,6 +229,10 @@ prompt, the full rendered tool list, and the phrase — so an unchanged catalog
 re-runs for free, and editing one intent's description invalidates exactly what
 it should.
 
+`--repeat N` is the exception: it never reads or writes the cache, so every
+repeat is a fresh, billed call. Repeats measure run-to-run variance, which a
+cached answer replayed N times cannot have. Budget for cases × N calls.
+
 ## How it works
 
 Four layers, each independently inspectable:
