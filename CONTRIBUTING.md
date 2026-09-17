@@ -18,6 +18,11 @@ mock judge, and CI passes with no key configured. No test in this repo may make
 a network call — if you add one that does, mark it `@pytest.mark.live` so it is
 deselected by default.
 
+To run the live tests once before a release, put your key in `.env`
+(`cp .env.example .env`, then paste it in) and run `pytest -m live`. They cost a
+few cents. The offline suite never sees that file: every other test runs from
+an empty temporary directory with the credential variables unset.
+
 **You do not need a Mac** for most work. The parser is pure Python and runs on
 Linux against the committed fixtures. The only thing that needs macOS is
 capturing a *new* fixture.

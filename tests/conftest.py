@@ -9,6 +9,7 @@ import pytest
 
 from intentbench.catalog import load_catalog, render_catalog
 from intentbench.corpus import load_corpus
+from intentbench.envfile import KNOWN_KEYS
 from intentbench.models import Catalog, RenderedCatalog
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -24,6 +25,20 @@ REAL_CATALOGS: dict[str, int] = {
     "freeform": 24,
     "podcasts": 0,
 }
+
+
+@pytest.fixture(autouse=True)
+def no_local_credentials(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep a developer's real keys out of the offline suite.
+
+    The CLI reads ``.env`` from the working directory, so each test runs from an
+    empty temporary one, with every credential variable unset.
+    """
+    if request.node.get_closest_marker("live"):
+        return
+    monkeypatch.chdir(request.getfixturevalue("tmp_path"))
+    for name in KNOWN_KEYS:
+        monkeypatch.delenv(name, raising=False)
 
 
 def catalog_path(slug: str) -> Path:

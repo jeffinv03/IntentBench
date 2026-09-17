@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Credentials can be pasted into a gitignored `.env` file in the working
+  directory instead of exported. `.env.example` is the template. Only
+  `ANTHROPIC_API_KEY`, `ANTHROPIC_WORKSPACE_ID`, and `OPENAI_API_KEY` are read,
+  and exported variables take precedence.
+- `ANTHROPIC_WORKSPACE_ID` is sent as the `anthropic-workspace-id` header, for
+  API keys that are not scoped to a workspace.
+
 ### Fixed
 
 - `--repeat N` now makes N fresh judge calls per case and bypasses the response
@@ -18,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cached-call totals are exact.
 - Cached responses no longer contribute tokens to the run's usage, so a fully
   cached run reports no cost instead of the cost of the original run.
+- The Anthropic judge works with `anthropic` 1.x, which removed `temperature`
+  from `messages.create()` and made every request fail with a `TypeError`.
+  Temperature is now sent in the request body, and dropped once for models that
+  reject it (Opus 4.7 and later).
 
 ## [0.1.0] — 2026-09-05
 
