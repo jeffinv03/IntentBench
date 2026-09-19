@@ -377,3 +377,59 @@ which is what people attach to bug reports), it means picking a locale, and
 problem is most of the value; resolving it is a v0.2 candidate.
 
 VoiceMemos is a committed fixture specifically so this path stays tested.
+
+## ADR-0010 — `--repeat` bypasses the response cache
+
+**Status:** accepted
+
+### The bug
+
+In 0.1.0 every repeat of a case built the same cache key. With a warm cache all
+N repeats replayed one stored answer, so `--repeat` reported every case as
+stable without asking the model again — the one thing the flag exists to
+measure. With a cold cache the repeats ran concurrently, and whether each one
+hit the API or the freshly written entry depended on thread timing. The mock
+judge runs uncached, so the CLI test for `--repeat` never exercised the path.
+
+### What we do
+
+With `repeat > 1` the runner neither reads nor writes the cache. Every attempt is
+a fresh call, and the cost confirmation counts cases × N.
+
+Alternatives considered:
+
+- **Put the attempt index in the cache key.** Repeat 2 of a warm run would then
+  replay repeat 2 of an old run, so instability would be measured once and
+  frozen forever. Rejected for the same reason as the original behavior.
+- **Write repeats to the single-run key.** Which attempt wins is arbitrary, and
+  a later single run would silently inherit it. Not worth the ambiguity.
+
+### Usage accounting
+
+Usage is summed over individual attempts before repeats are collapsed into one
+result. Cached attempts count as cached calls and contribute no tokens: their
+stored token counts describe a call paid for in an earlier run, not this one.
+
+## ADR-0011 — Temperature travels in `extra_body`
+
+**Status:** accepted
+
+`anthropic` 1.x removed `temperature`, `top_p`, and `top_k` from
+`messages.create()`; passing one is a `TypeError`. The first live run caught it —
+every offline test uses a fake client whose `create(**kwargs)` accepts anything.
+
+The API still honours temperature on the default model (`claude-sonnet-4-6`),
+and the judge depends on it: a judge that wanders between runs makes the diff
+meaningless (see `TEMPERATURE` in `judge/base.py`). So it is sent as
+`extra_body={"temperature": 0.0}`, which works on both 0.x and 1.x SDKs.
+
+Opus 4.7 and later reject sampling parameters outright, and Sonnet 5 rejects
+non-default values. As with forced tool choice (ADR-0006), the judge drops the
+setting after the first 400 that names it and remembers that for the run. On
+those models, run-to-run stability is up to the model — which `--repeat` now
+measures honestly (ADR-0010).
+
+A test now checks every argument the judge sends against the installed SDK's
+real `Messages.create` signature, so the fake client can no longer hide this
+kind of drift.
+

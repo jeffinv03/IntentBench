@@ -1,6 +1,6 @@
 # intentbench
 
-[![CI](https://github.com/jeffinv/intentbench/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffinv/intentbench/actions/workflows/ci.yml)
+[![CI](https://github.com/jeffinv03/IntentBench/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffinv03/IntentBench/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/intentbench)](https://pypi.org/project/intentbench/)
 
 Test whether your app's App Intents are distinct enough to be picked correctly —
@@ -44,7 +44,7 @@ and an iOS developer will catch it within a day.
 
 ```bash
 uvx intentbench catalog /System/Applications/Weather.app     # see what an app ships
-export ANTHROPIC_API_KEY=sk-ant-...
+echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .env                   # see "API keys" below
 uvx intentbench validate --app ./MyApp.app --corpus phrases.yaml   # free, catches typos
 uvx intentbench run --app ./MyApp.app --corpus phrases.yaml --json results.json
 ```
@@ -53,7 +53,39 @@ uvx intentbench run --app ./MyApp.app --corpus phrases.yaml --json results.json
 install it. Point it at any app on your Mac.
 
 Prefer a persistent install? `pipx install intentbench`, or
-`pip install 'intentbench[anthropic]'`.
+`pip install intentbench`. For the OpenAI judge, install
+`'intentbench[openai]'`.
+
+### API keys
+
+`catalog`, `validate`, and `run --judge mock` need no key. `run` with a real
+judge does. intentbench reads keys from a `.env` file in the directory you run
+it from, so the simplest setup is to paste them there:
+
+1. Create an Anthropic API key at [console.anthropic.com](https://console.anthropic.com)
+   under **Settings → API Keys**. It is shown once, so copy it straight away.
+   API usage is billed separately from a Claude.ai subscription, so the account
+   needs credits.
+2. Create `.env` next to your corpus. In a clone of this repo,
+   `cp .env.example .env` gives you a commented template. Otherwise, create it
+   by hand:
+
+   ```dotenv
+   ANTHROPIC_API_KEY=sk-ant-...
+   # Only if the API says "This API key is not scoped to a workspace":
+   # ANTHROPIC_WORKSPACE_ID=...    (Console → Settings → Workspaces)
+   # Only for --judge openai:
+   # OPENAI_API_KEY=sk-...
+   ```
+
+3. **Keep it out of git.** This repo already ignores `.env`. In your own
+   project, add it: `echo .env >> .gitignore`. Optionally, run `chmod 600 .env`
+   so only your user can read it.
+
+Only the three variables above are read from the file. Anything already
+exported in your shell takes precedence, so `export ANTHROPIC_API_KEY=...` and CI
+secrets (see below) keep working unchanged. If a key ever leaks, delete it in
+the Console and create a new one.
 
 > **What is a `.app` bundle?** On macOS and iOS, an app is a directory named
 > `MyApp.app`. When Xcode builds one, it writes a `Metadata.appintents`
@@ -191,7 +223,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pipx install 'intentbench[anthropic]'
+      - run: pipx install intentbench
 
       - name: Cache judge responses
         uses: actions/cache@v4
@@ -228,6 +260,10 @@ Caching the response directory matters. The cache key covers the model, the
 prompt, the full rendered tool list, and the phrase — so an unchanged catalog
 re-runs for free, and editing one intent's description invalidates exactly what
 it should.
+
+`--repeat N` is the exception: it never reads or writes the cache, so every
+repeat is a fresh, billed call. Repeats measure run-to-run variance, which a
+cached answer replayed N times cannot have. Budget for cases × N calls.
 
 ## How it works
 

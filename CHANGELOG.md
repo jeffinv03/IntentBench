@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Credentials can be pasted into a gitignored `.env` file in the working
+  directory instead of exported. `.env.example` is the template. Only
+  `ANTHROPIC_API_KEY`, `ANTHROPIC_WORKSPACE_ID`, and `OPENAI_API_KEY` are read,
+  and exported variables take precedence.
+- `ANTHROPIC_WORKSPACE_ID` is sent as the `anthropic-workspace-id` header, for
+  API keys that are not scoped to a workspace.
+
+### Changed
+
+- `anthropic` is now a core dependency, so `uvx intentbench run` and
+  `pipx install intentbench` work with the default judge out of the box.
+  The `[anthropic]` extra still exists so existing install lines keep working.
+
+### Fixed
+
+- Repository links on PyPI, in the README badge, and in the contributing guide
+  pointed at the wrong GitHub repository.
+- `--repeat N` now makes N fresh judge calls per case and bypasses the response
+  cache. Previously every repeat shared one cache key, so a warm cache replayed
+  the same answer N times and a case could never be flagged unstable; with a
+  cold cache, how many repeats hit the API depended on thread timing. The cost
+  confirmation now counts cases × N regardless of the cache.
+- Usage is counted per attempt before repeats are collapsed, so the API-call and
+  cached-call totals are exact.
+- Cached responses no longer contribute tokens to the run's usage, so a fully
+  cached run reports no cost instead of the cost of the original run.
+- The Anthropic judge works with `anthropic` 1.x, which removed `temperature`
+  from `messages.create()` and made every request fail with a `TypeError`.
+  Temperature is now sent in the request body, and dropped once for models that
+  reject it (Opus 4.7 and later).
+
 ## [0.1.0] — 2026-09-05
 
 First release.
@@ -48,5 +81,5 @@ First release.
 - Entity references are not resolved.
 - Extra parameters the model supplies are recorded but do not fail a case.
 
-[Unreleased]: https://github.com/jeffinv/intentbench/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/jeffinv/intentbench/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jeffinv03/IntentBench/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jeffinv03/IntentBench/releases/tag/v0.1.0

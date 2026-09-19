@@ -12,4 +12,13 @@ build/
 htmlcov/
 .DS_Store
 results.json
+
+# Local credentials. Copy .env.example to .env and fill it in.
+.env
+.env.*
+!.env.example
 baseline.json
+
+# Project memory: local context for this machine only (see AGENTS.md).
+AGENTS.md
+intentbench-implementation-spec*.md

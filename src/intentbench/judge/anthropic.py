@@ -10,6 +10,10 @@ misparse.
 list always carries the ``no_matching_intent`` escape hatch, so "nothing fits"
 remains expressible — while an entire class of unparseable non-answers
 disappears. ``disable_parallel_tool_use`` pins it to exactly one selection.
+
+Temperature travels in ``extra_body``: the 1.x SDK removed sampling parameters
+from its signature, but the API still honours them on the default model.
+Models that reject them (Opus 4.7 and later) get one fallback without it.
 """
 
 from __future__ import annotations
@@ -55,6 +59,8 @@ class AnthropicJudge:
         self._sleep = sleep
         #: Set once the API rejects forced tool choice, so we stop retrying it.
         self._forced_choice_supported = True
+        #: Set once the API rejects the temperature setting, so we stop sending it.
+        self._temperature_supported = True
 
         if client is not None:
             self._client = client
@@ -62,20 +68,25 @@ class AnthropicJudge:
 
         try:
             import anthropic
-        except ImportError as exc:  # pragma: no cover - depends on install extras
+        except ImportError as exc:  # pragma: no cover - a core dependency since 0.1.1
             raise JudgeError(
-                "The Anthropic judge needs the `anthropic` package.\n"
-                "  pip install 'intentbench[anthropic]'"
+                "The Anthropic judge needs the `anthropic` package, which is missing\n"
+                "from this install. Reinstall intentbench:\n"
+                "  pip install --force-reinstall intentbench"
             ) from exc
 
         key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         if not key:
             raise JudgeError(
-                "No Anthropic API key found.\n"
+                "No Anthropic API key found. Either:\n"
+                "  cp .env.example .env   # then paste the key into .env\n"
                 "  export ANTHROPIC_API_KEY=sk-ant-...\n"
                 "Or run with `--judge mock` to work offline."
             )
-        self._client = anthropic.Anthropic(api_key=key)
+        # Keys that are not scoped to a workspace must name one on every request.
+        workspace = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+        headers = {"anthropic-workspace-id": workspace} if workspace else None
+        self._client = anthropic.Anthropic(api_key=key, default_headers=headers)
 
     # -- retry ------------------------------------------------------------
 
@@ -104,11 +115,12 @@ class AnthropicJudge:
         kwargs: dict[str, Any] = {
             "model": self.model_id,
             "max_tokens": MAX_TOKENS,
-            "temperature": TEMPERATURE,
             "system": SYSTEM_PROMPT,
             "messages": build_messages(phrase, locale),
             "tools": [tool.to_api_dict() for tool in tools],
         }
+        if self._temperature_supported:
+            kwargs["extra_body"] = {"temperature": TEMPERATURE}
         if self._forced_choice_supported:
             kwargs["tool_choice"] = {"type": "any", "disable_parallel_tool_use": True}
         else:
@@ -127,6 +139,11 @@ class AnthropicJudge:
                 # choice. Fall back to `auto` once rather than failing the run.
                 if self._forced_choice_supported and _is_forced_choice_rejection(exc):
                     self._forced_choice_supported = False
+                    continue
+                # Opus 4.7 and later reject sampling parameters. Determinism is
+                # then up to the model; the run still goes ahead.
+                if self._temperature_supported and _is_temperature_rejection(exc):
+                    self._temperature_supported = False
                     continue
                 last_error = exc
                 if not self._is_retryable(exc) or attempt == self.max_attempts - 1:
@@ -147,6 +164,10 @@ class AnthropicJudge:
 def _is_forced_choice_rejection(exc: Exception) -> bool:
     message = str(exc).lower()
     return "tool_choice" in message and ("not supported" in message or "any" in message)
+
+
+def _is_temperature_rejection(exc: Exception) -> bool:
+    return getattr(exc, "status_code", None) == 400 and "temperature" in str(exc).lower()
 
 
 def _to_result(response: Any, started: float) -> JudgeResult:

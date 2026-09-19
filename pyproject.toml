@@ -26,9 +26,12 @@ dependencies = [
   "rich>=13.7",
   "pydantic>=2.7",
   "PyYAML>=6.0",
+  "anthropic>=0.40",
 ]
 
 [project.optional-dependencies]
+# Kept so existing `intentbench[anthropic]` install lines keep working;
+# anthropic is a core dependency since 0.1.1.
 anthropic = ["anthropic>=0.40"]
 openai = ["openai>=1.40"]
 all = ["anthropic>=0.40", "openai>=1.40"]
@@ -45,9 +48,9 @@ dev = [
 intentbench = "intentbench.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/jeffinv/intentbench"
-Issues = "https://github.com/jeffinv/intentbench/issues"
-Changelog = "https://github.com/jeffinv/intentbench/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/jeffinv03/IntentBench"
+Issues = "https://github.com/jeffinv03/IntentBench/issues"
+Changelog = "https://github.com/jeffinv03/IntentBench/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/intentbench"]

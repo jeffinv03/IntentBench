@@ -226,7 +226,8 @@ def test_anthropic_judge_sends_the_right_request() -> None:
     result = judge.select("add milk", _tools(), "en-US")
 
     sent = client.messages.calls[0]
-    assert sent["temperature"] == 0.0, "temperature is 0 and not configurable in v0.1"
+    # The 1.x SDK has no `temperature` argument; it rides in the body instead.
+    assert sent["extra_body"] == {"temperature": 0.0}, "temperature is 0, not configurable"
     assert sent["system"] == SYSTEM_PROMPT
     # Forced choice is safe because the escape hatch is in the tool list.
     assert sent["tool_choice"] == {"type": "any", "disable_parallel_tool_use": True}
@@ -289,6 +290,34 @@ def test_anthropic_judge_falls_back_when_forced_choice_is_rejected() -> None:
     result = judge.select("add milk", _tools(), "en-US")
     assert result.selected_intent == "AddItemIntent"
     assert client.messages.calls[-1]["tool_choice"]["type"] == "auto"
+
+
+def test_anthropic_judge_request_fits_the_installed_sdk() -> None:
+    """The fake client takes any kwargs, so check them against the real signature."""
+    import inspect
+
+    from anthropic.resources.messages import Messages
+
+    client = FakeClient(lambda n, kw: FakeResponse("AddItemIntent", {}))
+    AnthropicJudge(client=client).select("add milk", _tools(), "en-US")
+
+    accepted = inspect.signature(Messages.create).parameters
+    assert set(client.messages.calls[0]) <= set(accepted)
+
+
+def test_anthropic_judge_drops_temperature_when_the_model_rejects_it() -> None:
+    def behavior(n: int, kw: dict[str, Any]) -> Any:
+        if "temperature" in kw.get("extra_body", {}):
+            raise NotFound("temperature: is not supported for this model")
+        return FakeResponse("AddItemIntent", {})
+
+    client = FakeClient(behavior)
+    judge = AnthropicJudge(client=client, sleep=lambda _s: None)
+    assert judge.select("add milk", _tools(), "en-US").selected_intent == "AddItemIntent"
+    assert judge.select("add eggs", _tools(), "en-US").error is None
+    # One rejected call, then the setting stays off for the rest of the run.
+    assert len(client.messages.calls) == 3
+    assert "extra_body" not in client.messages.calls[-1]
 
 
 def test_missing_api_key_is_a_clear_error(monkeypatch: pytest.MonkeyPatch) -> None:

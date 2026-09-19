@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: New catalog fixture
-    url: https://github.com/jeffinv/intentbench/blob/main/CONTRIBUTING.md#the-highest-value-contribution-a-new-catalog-fixture
+    url: https://github.com/jeffinv03/IntentBench/blob/main/CONTRIBUTING.md#the-highest-value-contribution-a-new-catalog-fixture
     about: Have an app built with a different Xcode? A new fixture is the most valuable contribution.
   - name: Roadmap and scope
-    url: https://github.com/jeffinv/intentbench/blob/main/README.md#roadmap
+    url: https://github.com/jeffinv03/IntentBench/blob/main/README.md#roadmap
     about: Check whether a feature is already planned before opening a request.

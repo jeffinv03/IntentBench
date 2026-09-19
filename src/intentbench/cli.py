@@ -33,6 +33,7 @@ from intentbench.catalog.parse import load_located_catalog
 from intentbench.corpus import CorpusError, load_corpus, validate_corpus
 from intentbench.corpus.loader import has_errors
 from intentbench.corpus.schema import CorpusFile, IssueSeverity
+from intentbench.envfile import load_env_file
 from intentbench.judge import JudgeError, get_judge
 from intentbench.judge.base import Judge, cost_usd
 from intentbench.judge.cache import ResponseCache, cache_dir
@@ -171,7 +172,7 @@ def main_callback(
         typer.Option("--version", callback=_version_callback, is_eager=True, help="Show version."),
     ] = False,
 ) -> None:
-    pass
+    load_env_file()
 
 
 # ---------------------------------------------------------------------------
@@ -350,7 +351,13 @@ def run(
         typer.Option("--filter", help="Only run cases carrying these tags (comma-separated)."),
     ] = None,
     repeat: Annotated[
-        int, typer.Option("--repeat", min=1, help="Run each case N times and flag unstable ones.")
+        int,
+        typer.Option(
+            "--repeat",
+            min=1,
+            help="Run each case N times and flag unstable ones. "
+            "Every repeat is a fresh, uncached call.",
+        ),
     ] = 1,
     concurrency: Annotated[
         int, typer.Option("--concurrency", min=1, help="Concurrent requests.")
