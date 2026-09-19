@@ -18,3 +18,8 @@ results.json
 .env.*
 !.env.example
 baseline.json
+
+# Project memory: local context for this machine only (see AGENTS.md).
+AGENTS.md
+intentbench-implementation-spec.md
+intentbench-implementation-spec-part-2.md
