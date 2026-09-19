@@ -280,7 +280,7 @@ def test_square_brackets_in_output_are_not_eaten_as_markup(tmp_path: Path) -> No
     """Almost everything we print is data we did not write.
 
     Without markup disabled, rich reads `[anything]` as a style tag and silently
-    drops it — mangling install hints like `intentbench[anthropic]` and any
+    drops it — mangling install hints like `intentbench[openai]` and any
     app-authored description that happens to contain brackets.
     """
     catalog = tmp_path / "extract.actionsdata"

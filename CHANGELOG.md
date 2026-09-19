@@ -16,8 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ANTHROPIC_WORKSPACE_ID` is sent as the `anthropic-workspace-id` header, for
   API keys that are not scoped to a workspace.
 
+### Changed
+
+- `anthropic` is now a core dependency, so `uvx intentbench run` and
+  `pipx install intentbench` work with the default judge out of the box.
+  The `[anthropic]` extra still exists so existing install lines keep working.
+
 ### Fixed
 
+- Repository links on PyPI, in the README badge, and in the contributing guide
+  pointed at the wrong GitHub repository.
 - `--repeat N` now makes N fresh judge calls per case and bypasses the response
   cache. Previously every repeat shared one cache key, so a warm cache replayed
   the same answer N times and a case could never be flagged unstable; with a
@@ -73,5 +81,5 @@ First release.
 - Entity references are not resolved.
 - Extra parameters the model supplies are recorded but do not fail a case.
 
-[Unreleased]: https://github.com/jeffinv/intentbench/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/jeffinv/intentbench/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jeffinv03/IntentBench/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jeffinv03/IntentBench/releases/tag/v0.1.0

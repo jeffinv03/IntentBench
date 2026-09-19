@@ -6,7 +6,7 @@ that a first contribution is realistic.
 ## Setup
 
 ```bash
-git clone https://github.com/jeffinv/intentbench
+git clone https://github.com/jeffinv03/IntentBench
 cd intentbench
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e '.[dev]'

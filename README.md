@@ -1,6 +1,6 @@
 # intentbench
 
-[![CI](https://github.com/jeffinv/intentbench/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffinv/intentbench/actions/workflows/ci.yml)
+[![CI](https://github.com/jeffinv03/IntentBench/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffinv03/IntentBench/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/intentbench)](https://pypi.org/project/intentbench/)
 
 Test whether your app's App Intents are distinct enough to be picked correctly —
@@ -53,7 +53,8 @@ uvx intentbench run --app ./MyApp.app --corpus phrases.yaml --json results.json
 install it. Point it at any app on your Mac.
 
 Prefer a persistent install? `pipx install intentbench`, or
-`pip install 'intentbench[anthropic]'`.
+`pip install intentbench`. For the OpenAI judge, install
+`'intentbench[openai]'`.
 
 ### API keys
 
@@ -222,7 +223,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pipx install 'intentbench[anthropic]'
+      - run: pipx install intentbench
 
       - name: Cache judge responses
         uses: actions/cache@v4

@@ -68,10 +68,11 @@ class AnthropicJudge:
 
         try:
             import anthropic
-        except ImportError as exc:  # pragma: no cover - depends on install extras
+        except ImportError as exc:  # pragma: no cover - a core dependency since 0.1.1
             raise JudgeError(
-                "The Anthropic judge needs the `anthropic` package.\n"
-                "  pip install 'intentbench[anthropic]'"
+                "The Anthropic judge needs the `anthropic` package, which is missing\n"
+                "from this install. Reinstall intentbench:\n"
+                "  pip install --force-reinstall intentbench"
             ) from exc
 
         key = api_key or os.environ.get("ANTHROPIC_API_KEY")
